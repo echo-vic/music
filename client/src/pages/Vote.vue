@@ -54,8 +54,10 @@
         </q-item-main>
         <q-item-side right>
           <q-item-tile sublabel lines="2">
-            <div style="margin-bottom: 20px">
-              <q-btn push rounded color="primary" size="sm" label="Play" icon="ion-md-play" />
+            <div v-if="s.track.preview_url" style="margin-bottom: 20px">
+              <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
+              <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Play" icon="ion-md-play" />
+              <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Pause" icon="ion-md-pause" />
             </div>
             <div style="margin-bottom: 20px">
               <q-btn v-if="showVoteBtn(s)" push @click="showModal(s)" rounded color="secondary" size="sm" label="Vote" icon="ion-md-happy" />
@@ -109,6 +111,28 @@ export default {
     }
   },
   methods: {
+    playMusic (track, id) {
+      document.querySelectorAll('audio').forEach(el => {
+        el.pause()
+      })
+      document.querySelectorAll('.pause').forEach(el => {
+        el.classList.add('hide')
+      })
+      document.querySelectorAll('.play').forEach(el => {
+        el.classList.remove('hide')
+      })
+      document.querySelector('#audio-' + id).play()
+      document.querySelector('#play-' + id).classList.add('hide')
+      document.querySelector('#pause-' + id).classList.remove('hide')
+    },
+    pauseMusic (track, id) {
+      document.querySelectorAll('audio').forEach(el => {
+        el.pause()
+      })
+      document.querySelector('#audio-' + id).pause()
+      document.querySelector('#play-' + id).classList.remove('hide')
+      document.querySelector('#pause-' + id).classList.add('hide')
+    },
     formatDate (date) {
       return moment(date).lang('fr').format('L')
     },
@@ -223,4 +247,10 @@ export default {
   justify-content: center;
   margin: 20px;
 }
+.hide {
+    display: none;
+  }
+  .show {
+    display: block;
+  }
 </style>
