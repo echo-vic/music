@@ -18,7 +18,7 @@
       </div>
     </q-modal>
     <q-list separator multiline>
-      <q-item v-for="s in selections" :key="s._id">
+      <q-item v-if="s.vote.length < users.length" v-for="s in selections" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
         <q-item-main>
           <q-item-tile label>{{ s.track.name }} <span>{{ s.track.artists[0].name }}</span></q-item-tile>

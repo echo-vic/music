@@ -1,29 +1,54 @@
 <template>
   <q-page padding>
     <q-list highlight>
-    <q-list-header>Playlist</q-list-header>
-    <q-collapsible v-for="s in allVoteOk" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
-      <div class="row items-center">
-        <div class="col col-auto" style="margin: 0 auto">
-          <q-btn push rounded color="primary" label="Play" icon="ion-md-play" />
-          <br><br>
+      <q-list-header><i style="font-size:2em" aria-hidden="true" class="q-icon material-icons">check</i> Morceaux selectionnés</q-list-header>
+      <q-collapsible v-for="s in allVoteOk" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
+        <div class="row items-center">
+          <div class="col col-auto" style="margin: 0 auto">
+            <q-btn push rounded color="primary" label="Play" icon="ion-md-play" />
+            <br><br>
+          </div>
+          <div class="col col-auto" style="margin: 0 auto">
+            <small>Album: <span>{{ s.track.album.name }}</span></small><br>
+            <small>Ajouté le {{ formatDate(s.creationDate) }} par {{ getUserName(s.userId) }}</small><br>
+            <q-rating slot="subtitle" :value="getAverage(s.vote)" readonly :max="5" />
+            <br><br>
+          </div>
         </div>
-        <div class="col col-auto" style="margin: 0 auto">
-          <small>Album: <span>{{ s.track.album.name }}</span></small><br>
-          <small>Ajouté le {{ formatDate(s.creationDate) }} par {{ getUserName(s.userId) }}</small><br>
-          <q-rating slot="subtitle" :value="getAverage(s.vote)" readonly :max="5" />
-          <br><br>
-        </div>
-      </div>
 
-      <div class="row" v-if="s.vote.length">
-        <div class="col q-pa-sm" v-for="vote in s.vote" :key="vote.userId">
-        <div>{{ getUserName(vote.userId) }}</div>
-          <q-rating slot="subtitle" :value="vote.value" readonly :max="5" />
+        <div class="row" v-if="s.vote.length">
+          <div class="col q-pa-sm" v-for="vote in s.vote" :key="vote.userId">
+          <div>{{ getUserName(vote.userId) }}</div>
+            <q-rating slot="subtitle" :value="vote.value" readonly :max="5" />
+          </div>
         </div>
-      </div>
-    </q-collapsible>
-</q-list>
+      </q-collapsible>
+    </q-list>
+
+    <q-list highlight style="margin-top: 40px">
+      <q-list-header><i style="font-size:2em;" aria-hidden="true" class="q-icon material-icons">error</i> Morceaux refusés</q-list-header>
+      <q-collapsible v-for="s in allVoteKo" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
+        <div class="row items-center">
+          <div class="col col-auto" style="margin: 0 auto">
+            <q-btn push rounded color="primary" label="Play" icon="ion-md-play" />
+            <br><br>
+          </div>
+          <div class="col col-auto" style="margin: 0 auto">
+            <small>Album: <span>{{ s.track.album.name }}</span></small><br>
+            <small>Ajouté le {{ formatDate(s.creationDate) }} par {{ getUserName(s.userId) }}</small><br>
+            <q-rating slot="subtitle" :value="getAverage(s.vote)" readonly :max="5" />
+            <br><br>
+          </div>
+        </div>
+
+        <div class="row" v-if="s.vote.length">
+          <div class="col q-pa-sm" v-for="vote in s.vote" :key="vote.userId">
+          <div>{{ getUserName(vote.userId) }}</div>
+            <q-rating slot="subtitle" :value="vote.value" readonly :max="5" />
+          </div>
+        </div>
+      </q-collapsible>
+    </q-list>
   </q-page>
 </template>
 
@@ -34,6 +59,7 @@ import { Loading } from 'quasar'
 import moment from 'moment'
 
 export default {
+  name: 'playlist',
   data () {
     return {
       selections: [],
@@ -69,6 +95,22 @@ export default {
             total += v.value
           })
           if (total >= average) {
+            els.push(el)
+          }
+        })
+        return els
+      }
+    },
+    allVoteKo () {
+      let average = (this.users.length * 5) / 2
+      if (this.allVote) {
+        let els = []
+        this.allVote.forEach(el => {
+          let total = 0
+          el.vote.forEach(v => {
+            total += v.value
+          })
+          if (total < average) {
             els.push(el)
           }
         })
