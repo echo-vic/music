@@ -2,11 +2,13 @@
   <q-page padding>
     <!-- Morceaux selectionnés -->
     <q-list highlight>
-      <q-list-header><i style="font-size:2em" aria-hidden="true" class="q-icon material-icons">check</i> Morceaux selectionnés</q-list-header>
+      <q-list-header><span class="emoticone" style="font-size: 1.5em; vertical-align:middle">🤘</span> <span style="font-size: 1.2em"> Morceaux selectionnés</span></q-list-header>
       <q-collapsible v-for="s in allVoteOk" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
         <div class="row items-center">
-          <div class="col col-auto" style="margin: 0 auto">
-            <q-btn push rounded color="primary" label="Play" icon="ion-md-play" />
+          <div v-if="s.track.preview_url" class="col col-auto" style="margin: 0 auto">
+            <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
+            <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" push rounded color="primary" label="Play" icon="ion-md-play" />
+            <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" push rounded color="primary" label="Pause" icon="ion-md-pause" />
             <br><br>
           </div>
           <div class="col col-auto" style="margin: 0 auto">
@@ -28,11 +30,14 @@
 
     <!-- Morceaux refusés -->
     <q-list highlight style="margin-top: 40px">
-      <q-list-header><i style="font-size:2em;" aria-hidden="true" class="q-icon material-icons">error</i> Morceaux refusés</q-list-header>
+      <q-list-header><span class="emoticone" style="font-size: 1.5em; vertical-align:middle">👎</span>
+      <span style="font-size: 1.2em"> Morceaux refusés</span></q-list-header>
       <q-collapsible v-for="s in allVoteKo" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
         <div class="row items-center">
-          <div class="col col-auto" style="margin: 0 auto">
-            <q-btn push rounded color="primary" label="Play" icon="ion-md-play" />
+          <div v-if="s.track.preview_url" class="col col-auto" style="margin: 0 auto">
+            <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
+            <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" push rounded color="primary" label="Play" icon="ion-md-play" />
+            <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" push rounded color="primary" label="Pause" icon="ion-md-pause" />
             <br><br>
           </div>
           <div class="col col-auto" style="margin: 0 auto">
@@ -54,11 +59,14 @@
 
     <!-- Morceaux refusés direct -->
     <q-list highlight style="margin-top: 40px">
-      <q-list-header><i style="font-size:2em;" aria-hidden="true" class="q-icon material-icons">error</i> Morceaux refusés direct !</q-list-header>
+      <q-list-header><span class="emoticone" style="font-size: 1.5em; vertical-align:middle">🖕</span>
+      <span style="font-size: 1.2em"> Morceaux refusés direct !</span></q-list-header>
       <q-collapsible v-for="s in vetoVote" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
         <div class="row items-center">
-          <div class="col col-auto" style="margin: 0 auto">
-            <q-btn push rounded color="primary" label="Play" icon="ion-md-play" />
+          <div v-if="s.track.preview_url" class="col col-auto" style="margin: 0 auto">
+            <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
+            <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" push rounded color="primary" label="Play" icon="ion-md-play" />
+            <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" push rounded color="primary" label="Pause" icon="ion-md-pause" />
             <br><br>
           </div>
           <div class="col col-auto" style="margin: 0 auto">
@@ -158,6 +166,28 @@ export default {
     }
   },
   methods: {
+    playMusic (track, id) {
+      document.querySelectorAll('audio').forEach(el => {
+        el.pause()
+      })
+      document.querySelectorAll('.pause').forEach(el => {
+        el.classList.add('hide')
+      })
+      document.querySelectorAll('.play').forEach(el => {
+        el.classList.remove('hide')
+      })
+      document.querySelector('#audio-' + id).play()
+      document.querySelector('#play-' + id).classList.add('hide')
+      document.querySelector('#pause-' + id).classList.remove('hide')
+    },
+    pauseMusic (track, id) {
+      document.querySelectorAll('audio').forEach(el => {
+        el.pause()
+      })
+      document.querySelector('#audio-' + id).pause()
+      document.querySelector('#play-' + id).classList.remove('hide')
+      document.querySelector('#pause-' + id).classList.add('hide')
+    },
     getAverage (votes) {
       let total = 0
       votes.forEach(v => {
@@ -199,3 +229,12 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+  .hide {
+    display: none;
+  }
+  .show {
+    display: block;
+  }
+</style>
