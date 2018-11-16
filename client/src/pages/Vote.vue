@@ -20,7 +20,7 @@
 
     <q-modal class="modal" minimized v-model="openedVeto">
     <div class="modal-rate">
-      Tu n'aimes pas, mais pas du tout ce titre.<br>
+      Tu n'aimes pas, mais pas du tout ce titre ?<br>
       C'est ton droit !<br>
       Si tu cliques sur le bouton, il sera retirer de suite de la liste !
     </div>
@@ -58,6 +58,9 @@
               <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
               <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Play" icon="ion-md-play" />
               <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Pause" icon="ion-md-pause" />
+            </div>
+            <div style="margin-bottom: 20px">
+              <q-btn @click="launchSpotify(s.track.uri)" push rounded color="tertiary" size="sm" label="Spotify" icon="fab fa-spotify" />
             </div>
             <div style="margin-bottom: 20px">
               <q-btn v-if="showVoteBtn(s)" push @click="showModal(s)" rounded color="secondary" size="sm" label="Vote" icon="ion-md-happy" />
@@ -111,6 +114,9 @@ export default {
     }
   },
   methods: {
+    launchSpotify (id) {
+      location.href = id
+    },
     playMusic (track, id) {
       document.querySelectorAll('audio').forEach(el => {
         el.pause()
