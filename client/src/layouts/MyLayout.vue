@@ -12,12 +12,6 @@
       </q-toolbar>
     </q-layout-header>
 
-    <q-layout-drawer
-      v-model="leftDrawerOpen"
-      :content-class="$q.theme === 'mat' ? 'bg-grey-2' : null"
-    >
-    </q-layout-drawer>
-
     <q-page-container>
       <transition
         appear
