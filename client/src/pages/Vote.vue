@@ -17,8 +17,26 @@
       />
       </div>
     </q-modal>
-    <q-list separator multiline>
-      <q-item v-if="s.vote.length < users.length" v-for="s in selections" :key="s._id">
+
+    <q-modal class="modal" minimized v-model="openedVeto">
+    <div class="modal-rate">
+      Tu n'aimes pas, mais pas du tout ce titre.<br>
+      C'est ton droit !<br>
+      Si tu cliques sur le bouton, il sera retirer de suite de la liste !
+    </div>
+    <div class="modal-rate">
+      <q-btn
+        color="primary"
+        @click="veto"
+        label="Retire moi ce titre"
+      />
+      </div>
+    </q-modal>
+    <q-list v-if="!noSelection.length">
+      <h3 style="text-align: center">Pas de vote en cours</h3>
+    </q-list>
+    <q-list separator multiline v-else>
+      <q-item v-if="s.vote.length < users.length" v-for="s in selectionWithoutVeto" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
         <q-item-main>
           <q-item-tile label>{{ s.track.name }} <span>{{ s.track.artists[0].name }}</span></q-item-tile>
@@ -36,11 +54,14 @@
         </q-item-main>
         <q-item-side right>
           <q-item-tile sublabel lines="2">
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 20px">
               <q-btn push rounded color="primary" size="sm" label="Play" icon="ion-md-play" />
             </div>
-            <div>
+            <div style="margin-bottom: 20px">
               <q-btn v-if="showVoteBtn(s)" push @click="showModal(s)" rounded color="secondary" size="sm" label="Vote" icon="ion-md-happy" />
+            </div>
+            <div>
+              <q-btn v-if="showVoteBtn(s)" push @click="showVetoModal(s)" rounded color="negative" size="sm" label="Veto" icon="ion-md-sad" />
             </div>
           </q-item-tile>
         </q-item-side>
@@ -61,14 +82,56 @@ export default {
       ratingModel: undefined,
       trackSelected: undefined,
       opened: false,
+      openedVeto: false,
       selections: [],
       users: [],
       rating: {}
     }
   },
+  computed: {
+    noSelection () {
+      let result = []
+      this.selectionWithoutVeto.forEach(selection => {
+        if (selection.vote.length < this.users.length) {
+          result.push(selection)
+        }
+      })
+      return result
+    },
+    selectionWithoutVeto () {
+      let result = []
+      this.selections.forEach(selection => {
+        if (!selection.vote.find(vote => vote.value === 0)) {
+          result.push(selection)
+        }
+      })
+      return result
+    }
+  },
   methods: {
     formatDate (date) {
       return moment(date).lang('fr').format('L')
+    },
+    veto () {
+      let userId = localStorage.getItem('userId')
+      Api().put('vote/' + this.trackSelected._id, {
+        'value': 0,
+        'userId': userId
+      })
+        .then(resp => {
+          this.openedVeto = false
+          this.$q.notify({
+            type: 'positive',
+            message: 'Le titre a été retiré',
+            position: 'top'
+          })
+          this.getSelections()
+        })
+    },
+    showVetoModal (track) {
+      this.openedVeto = true
+      this.ratingModel = undefined
+      this.trackSelected = track
     },
     showModal (track) {
       this.opened = true

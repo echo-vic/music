@@ -1,5 +1,6 @@
 <template>
   <q-page padding>
+    <!-- Morceaux selectionnés -->
     <q-list highlight>
       <q-list-header><i style="font-size:2em" aria-hidden="true" class="q-icon material-icons">check</i> Morceaux selectionnés</q-list-header>
       <q-collapsible v-for="s in allVoteOk" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
@@ -25,9 +26,36 @@
       </q-collapsible>
     </q-list>
 
+    <!-- Morceaux refusés -->
     <q-list highlight style="margin-top: 40px">
       <q-list-header><i style="font-size:2em;" aria-hidden="true" class="q-icon material-icons">error</i> Morceaux refusés</q-list-header>
       <q-collapsible v-for="s in allVoteKo" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
+        <div class="row items-center">
+          <div class="col col-auto" style="margin: 0 auto">
+            <q-btn push rounded color="primary" label="Play" icon="ion-md-play" />
+            <br><br>
+          </div>
+          <div class="col col-auto" style="margin: 0 auto">
+            <small>Album: <span>{{ s.track.album.name }}</span></small><br>
+            <small>Ajouté le {{ formatDate(s.creationDate) }} par {{ getUserName(s.userId) }}</small><br>
+            <q-rating slot="subtitle" :value="getAverage(s.vote)" readonly :max="5" />
+            <br><br>
+          </div>
+        </div>
+
+        <div class="row" v-if="s.vote.length">
+          <div class="col q-pa-sm" v-for="vote in s.vote" :key="vote.userId">
+          <div>{{ getUserName(vote.userId) }}</div>
+            <q-rating slot="subtitle" :value="vote.value" readonly :max="5" />
+          </div>
+        </div>
+      </q-collapsible>
+    </q-list>
+
+    <!-- Morceaux refusés direct -->
+    <q-list highlight style="margin-top: 40px">
+      <q-list-header><i style="font-size:2em;" aria-hidden="true" class="q-icon material-icons">error</i> Morceaux refusés direct !</q-list-header>
+      <q-collapsible v-for="s in vetoVote" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
         <div class="row items-center">
           <div class="col col-auto" style="margin: 0 auto">
             <q-btn push rounded color="primary" label="Play" icon="ion-md-play" />
@@ -70,6 +98,15 @@ export default {
     }
   },
   computed: {
+    vetoVote () {
+      let result = []
+      this.selections.forEach(selection => {
+        if (selection.vote.find(vote => vote.value === 0)) {
+          result.push(selection)
+        }
+      })
+      return result
+    },
     awaitingVote () {
       if (this.selections) {
         return this.selections.filter(el => {
@@ -90,12 +127,14 @@ export default {
       if (this.allVote) {
         let els = []
         this.allVote.forEach(el => {
-          let total = 0
-          el.vote.forEach(v => {
-            total += v.value
-          })
-          if (total >= average) {
-            els.push(el)
+          if (!el.vote.find(v => v.value === 0)) {
+            let total = 0
+            el.vote.forEach(v => {
+              total += v.value
+            })
+            if (total >= average) {
+              els.push(el)
+            }
           }
         })
         return els
