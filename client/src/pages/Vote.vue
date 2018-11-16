@@ -36,7 +36,7 @@
       <h3 style="text-align: center">Pas de vote en cours</h3>
     </q-list>
     -->
-    <q-list separator multiline>
+    <q-list striped sparse separator multiline>
       <q-item v-if="s.vote.length < users.length" v-for="s in selectionWithoutVeto" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
         <q-item-main>
@@ -55,15 +55,15 @@
         </q-item-main>
         <q-item-side right>
           <q-item-tile sublabel lines="2">
-            <div v-if="s.track.preview_url" style="margin-bottom: 20px">
+            <div v-if="s.track.preview_url" style="margin-bottom: 17px">
               <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
               <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Play" icon="ion-md-play" />
               <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Pause" icon="ion-md-pause" />
             </div>
-            <div style="margin-bottom: 20px">
+            <div style="margin-bottom: 17px">
               <q-btn @click="launchSpotify(s.track.uri)" push rounded color="tertiary" size="sm" label="Spotify" icon="fab fa-spotify" />
             </div>
-            <div style="margin-bottom: 20px">
+            <div style="margin-bottom: 17px">
               <q-btn v-if="showVoteBtn(s)" push @click="showModal(s)" rounded color="secondary" size="sm" label="Vote" icon="ion-md-happy" />
             </div>
             <div>
@@ -229,6 +229,9 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.q-list-striped > .q-item:nth-child(even) {
+  background-color: rgba(189,189,189,0.2);
+}
   table,thead,tbody,tfoot,tr,th,td {
     width: auto;
     height: auto;
