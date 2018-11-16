@@ -98,6 +98,7 @@ export default {
   name: 'playlist',
   data () {
     return {
+      average: 13,
       selections: [],
       users: [],
       rating: {
@@ -131,7 +132,7 @@ export default {
       }
     },
     allVoteOk () {
-      let average = (this.users.length * 5) / 2
+      // let average = (this.users.length * 5) / 2
       if (this.allVote) {
         let els = []
         this.allVote.forEach(el => {
@@ -140,7 +141,7 @@ export default {
             el.vote.forEach(v => {
               total += v.value
             })
-            if (total >= average) {
+            if (total >= this.average) {
               els.push(el)
             }
           }
