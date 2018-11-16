@@ -32,10 +32,11 @@
       />
       </div>
     </q-modal>
-    <q-list v-if="!noSelection.length">
+    <!--<q-list v-if="!noSelection.length">
       <h3 style="text-align: center">Pas de vote en cours</h3>
     </q-list>
-    <q-list separator multiline v-else>
+    -->
+    <q-list separator multiline>
       <q-item v-if="s.vote.length < users.length" v-for="s in selectionWithoutVeto" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
         <q-item-main>
