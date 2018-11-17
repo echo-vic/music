@@ -1,5 +1,5 @@
 <template>
-  <q-page padding>
+  <q-page v-if="selections.length" padding>
     <q-modal class="modal" minimized v-model="opened">
     <div class="modal-rate">
       <q-rating
@@ -36,8 +36,48 @@
       <h3 style="text-align: center">Pas de vote en cours</h3>
     </q-list>
     -->
-    <q-list striped sparse separator multiline>
-      <q-item v-if="s.vote.length < users.length" v-for="s in selectionWithoutVeto" :key="s._id">
+    <q-list v-if="awaitingVote && awaitingVote.length" striped sparse separator multiline>
+      <q-list-header><span class="list-header">Titres en attente de ton vote :</span></q-list-header>
+      <q-item v-if="s.vote.length < users.length" v-for="s in awaitingVote" :key="s._id">
+        <q-item-side :avatar="s.track.album.images[2].url" />
+        <q-item-main>
+          <q-item-tile label>{{ s.track.name }} <span>{{ s.track.artists[0].name }}</span></q-item-tile>
+            <q-item-tile sublabel lines="4">
+              <table>
+                <tr v-for="user in users" :key="user._id">
+                  <td class="table-user">{{ user.name }}</td>
+                  <td><q-rating size="18px" :value="getVote(s._id, user._id)" readonly :max="5" /></td>
+                </tr>
+              </table>
+            </q-item-tile>
+            <q-item-tile sublabel>
+              <small>Proposé par {{ getUserName(s.userId) }} le {{ formatDate(s.creationDate) }}</small>
+            </q-item-tile>
+        </q-item-main>
+        <q-item-side right>
+          <q-item-tile sublabel lines="2">
+            <div v-if="s.track.preview_url" style="margin-bottom: 17px">
+              <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
+              <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Play" icon="ion-md-play" />
+              <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Pause" icon="ion-md-pause" />
+            </div>
+            <div style="margin-bottom: 17px">
+              <q-btn @click="launchSpotify(s.track.uri)" push rounded color="tertiary" size="sm" label="Spotify" icon="fab fa-spotify" />
+            </div>
+            <div style="margin-bottom: 17px">
+              <q-btn v-if="showVoteBtn(s)" push @click="showModal(s)" rounded color="secondary" size="sm" label="Vote" icon="ion-md-happy" />
+            </div>
+            <div>
+              <q-btn v-if="showVoteBtn(s)" push @click="showVetoModal(s)" rounded color="negative" size="sm" label="Veto" icon="ion-md-sad" />
+            </div>
+          </q-item-tile>
+        </q-item-side>
+      </q-item>
+    </q-list>
+
+    <q-list v-if="alreadyVote.length" striped sparse separator multiline style="margin-top: 50px">
+      <q-list-header><span class="list-header">Tu as déjà voté pour les titres suivants :</span></q-list-header>
+      <q-item v-if="s.vote.length < users.length" v-for="s in alreadyVote" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
         <q-item-main>
           <q-item-tile label>{{ s.track.name }} <span>{{ s.track.artists[0].name }}</span></q-item-tile>
@@ -117,9 +157,21 @@ export default {
     },
     alreadyVote () {
       let result = []
-      // let userId = localStorage.getItem('userId')
+      let userId = localStorage.getItem('userId')
       this.selectionWithoutVeto.forEach(selection => {
-        console.log('selection', selection)
+        if (selection.vote.find(vote => vote.userId === userId)) {
+          result.push(selection)
+        }
+      })
+      return result
+    },
+    awaitingVote () {
+      let result = []
+      let userId = localStorage.getItem('userId')
+      this.selectionWithoutVeto.forEach(selection => {
+        if (!selection.vote.find(vote => vote.userId === userId)) {
+          result.push(selection)
+        }
       })
       return result
     }
@@ -239,6 +291,11 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+@import '~variables'
+
+.list-header {
+  color: $primary;
+}
 .q-list-striped > .q-item:nth-child(even) {
   background-color: rgba(189,189,189,0.2);
 }
