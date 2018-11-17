@@ -1,5 +1,6 @@
 <template>
   <q-page v-if="selections.length" padding>
+    <q-pull-to-refresh :handler="refresh">
     <q-modal class="modal" minimized v-model="opened">
     <div class="modal-rate">
       <q-rating
@@ -36,7 +37,11 @@
       <h3 style="text-align: center">Pas de vote en cours</h3>
     </q-list>
     -->
-    <q-list v-if="awaitingVote && awaitingVote.length" striped sparse separator multiline>
+
+    <!--//////////// -->
+    <!-- awaitingVote -->
+    <!--//////////// -->
+    <q-list class="round-borders shadow-5" v-if="awaitingVote && awaitingVote.length" striped sparse separator multiline>
       <q-list-header><span class="list-header">Titres en attente de ton vote :</span></q-list-header>
       <q-item v-if="s.vote.length < users.length" v-for="s in awaitingVote" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
@@ -75,7 +80,10 @@
       </q-item>
     </q-list>
 
-    <q-list v-if="alreadyVote.length" striped sparse separator multiline style="margin-top: 50px">
+    <!--//////////// -->
+    <!-- alreadyVote -->
+    <!--/////////////-->
+    <q-list class="round-borders shadow-5" v-if="alreadyVote.length" striped sparse separator multiline style="margin-top: 50px">
       <q-list-header><span class="list-header">Tu as déjà voté pour les titres suivants :</span></q-list-header>
       <q-item v-if="s.vote.length < users.length" v-for="s in alreadyVote" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
@@ -113,6 +121,7 @@
         </q-item-side>
       </q-item>
     </q-list>
+    </q-pull-to-refresh>
   </q-page>
 </template>
 
@@ -177,6 +186,13 @@ export default {
     }
   },
   methods: {
+    refresh (done) {
+      Api().get('selection')
+        .then(resp => {
+          this.selections = resp.data.selection
+          done()
+        })
+    },
     launchSpotify (id) {
       location.href = id
     },

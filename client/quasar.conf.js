@@ -70,7 +70,8 @@ module.exports = function (ctx) {
         'QModal',
         'QSpinner',
         'QSpinnerPuff',
-        'QInput'
+        'QInput',
+        'QPullToRefresh'
       ],
       directives: [
         'Ripple',
