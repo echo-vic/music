@@ -80,6 +80,7 @@
 import Api from '../services/Api'
 import { Loading } from 'quasar'
 import moment from 'moment'
+import orderBy from 'lodash/orderBy'
 
 export default {
   name: 'vote',
@@ -105,11 +106,20 @@ export default {
       return result
     },
     selectionWithoutVeto () {
+      // let scenesOrder = orderBy(resp.body.scenes, ['createdAt'], ['asc'])
       let result = []
       this.selections.forEach(selection => {
         if (!selection.vote.find(vote => vote.value === 0)) {
           result.push(selection)
         }
+      })
+      return orderBy(result, ['creationDate'], ['desc'])
+    },
+    alreadyVote () {
+      let result = []
+      // let userId = localStorage.getItem('userId')
+      this.selectionWithoutVeto.forEach(selection => {
+        console.log('selection', selection)
       })
       return result
     }
