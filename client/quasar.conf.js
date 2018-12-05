@@ -70,7 +70,10 @@ module.exports = function (ctx) {
         'QModal',
         'QSpinner',
         'QSpinnerPuff',
-        'QInput'
+        'QInput',
+        'QPullToRefresh',
+        'QDatetime',
+        'QSelect'
       ],
       directives: [
         'Ripple',
@@ -93,13 +96,14 @@ module.exports = function (ctx) {
       // workboxPluginMode: 'InjectManifest',
       // workboxOptions: {},
       manifest: {
-        // name: 'Quasar App',
-        // short_name: 'Quasar-PWA',
-        // description: 'Best PWA App in town!',
+        name: 'Cover',
+        short_name: 'Cover',
+        description: 'Cover Choice',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
         theme_color: '#027be3',
+        // gcm_sender_id: '265120238955',
         icons: [
           {
             'src': 'statics/icons/icon-128x128.png',
