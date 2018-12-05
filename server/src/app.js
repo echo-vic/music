@@ -53,6 +53,52 @@ app.get('/spotify-secret', (req, res) => {
 	);
 })
 
+var Repet = require("../models/repet")
+
+app.get('/repet', (req, res) => {
+	Repet.find({}, 'date songs', function (error, repet) {
+		if (error) { console.error(error); }
+		res.send({
+			repet: repet
+		})
+	})
+})
+
+app.post('/add_repet', (req, res) => {
+	var db = req.db;
+	var new_repet = new Repet({
+		date: req.body.date,
+		songs: []
+	})
+
+	new_repet.save(function (error) {
+		if (error) {
+			console.log(error)
+		}
+		res.send({
+			success: true
+		})
+	})
+})
+
+app.put('/new_repet_song/:repet_id', (req, res) => {
+	var db = req.db;
+	Repet.findById(req.params.repet_id, function (err, repet) {
+		if (err) {
+			res.send(err);
+		}
+		repet.songs.push(req.body.songId)
+		repet.save(function (err) {
+			if (err) {
+				res.send(err);
+			}
+			res.send({
+				success: true
+			})
+		})
+	})
+})
+
 var Selection = require("../models/selection")
 
 app.get('/selection', (req, res) => {
@@ -74,7 +120,6 @@ app.put('/vote/:track_id', (req, res) => {
 			'value': req.body.value,
 			'userId': req.body.userId
 		})
-		console.log('track', track)
 		track.save(function (err) {
 			if (err) {
 				res.send(err);
