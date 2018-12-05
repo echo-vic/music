@@ -31,6 +31,13 @@ export default {
     }
   },
   methods: {
+    checkIfUserIsLogged () {
+      if (!localStorage.getItem('userId')) {
+        this.$router.push({
+          name: 'home'
+        })
+      }
+    },
     allPause () {
       document.querySelectorAll('audio').forEach(el => {
         el.pause()
@@ -86,6 +93,7 @@ export default {
     }
   },
   mounted () {
+    this.checkIfUserIsLogged()
     Api().get('/spotify-secret')
       .then(resp => {
         this.token = resp.data.secret

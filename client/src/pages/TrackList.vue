@@ -2,8 +2,8 @@
   <q-page padding>
     <!-- Morceaux selectionnés -->
     <q-list highlight>
-      <q-list-header><span class="emoticone" style="font-size: 1.5em; vertical-align:middle">🤘</span> <span style="font-size: 1.2em"> Morceaux selectionnés</span></q-list-header>
-      <q-collapsible v-for="s in allVoteOk" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
+      <q-list-header><span class="emoticone" style="font-size: 1.5em; vertical-align:middle">🤘</span> <span style="font-size: 1.2em"> Titres selectionnés ( > {{ average }} points )</span></q-list-header>
+      <q-collapsible v-for="s in allVoteOk" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name + ' (' + s.total + ' pts)'">
         <div class="row items-center">
           <div v-if="s.track.preview_url" class="col col-auto" style="margin: 0 auto">
             <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
@@ -31,7 +31,7 @@
     <!-- Morceaux refusés -->
     <q-list highlight style="margin-top: 40px">
       <q-list-header><span class="emoticone" style="font-size: 1.5em; vertical-align:middle">👎</span>
-      <span style="font-size: 1.2em"> Morceaux refusés</span></q-list-header>
+      <span style="font-size: 1.2em"> Titres refusés</span></q-list-header>
       <q-collapsible v-for="s in allVoteKo" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
         <div class="row items-center">
           <div v-if="s.track.preview_url" class="col col-auto" style="margin: 0 auto">
@@ -60,7 +60,7 @@
     <!-- Morceaux refusés direct -->
     <q-list highlight style="margin-top: 40px">
       <q-list-header><span class="emoticone" style="font-size: 1.5em; vertical-align:middle">🖕</span>
-      <span style="font-size: 1.2em"> Morceaux refusés direct !</span></q-list-header>
+      <span style="font-size: 1.2em"> Titres refusés direct !</span></q-list-header>
       <q-collapsible v-for="s in vetoVote" :key="s._id" :avatar="s.track.album.images[2].url" :label="s.track.artists[0].name + ' - ' + s.track.name">
         <div class="row items-center">
           <div v-if="s.track.preview_url" class="col col-auto" style="margin: 0 auto">
@@ -93,12 +93,12 @@
 import Api from '../services/Api'
 import { Loading } from 'quasar'
 import moment from 'moment'
+import orderBy from 'lodash/orderBy'
 
 export default {
   name: 'playlist',
   data () {
     return {
-      average: 13,
       selections: [],
       users: [],
       rating: {
@@ -107,6 +107,9 @@ export default {
     }
   },
   computed: {
+    average () {
+      return parseInt((this.users.length * 5) / 1.1)
+    },
     vetoVote () {
       let result = []
       this.selections.forEach(selection => {
@@ -119,7 +122,7 @@ export default {
     awaitingVote () {
       if (this.selections) {
         return this.selections.filter(el => {
-          return el.vote.lenght !== 4
+          return el.vote.lenght !== this.users.length
         })
       }
     },
@@ -132,7 +135,6 @@ export default {
       }
     },
     allVoteOk () {
-      // let average = (this.users.length * 5) / 2
       if (this.allVote) {
         let els = []
         this.allVote.forEach(el => {
@@ -141,16 +143,18 @@ export default {
             el.vote.forEach(v => {
               total += v.value
             })
+            el.total = total
             if (total >= this.average) {
               els.push(el)
             }
           }
         })
-        return els
+        return orderBy(els, ['total'], ['desc'])
+        // return els
       }
     },
     allVoteKo () {
-      let average = (this.users.length * 5) / 2
+      console.log('')
       if (this.allVote) {
         let els = []
         this.allVote.forEach(el => {
@@ -158,7 +162,7 @@ export default {
           el.vote.forEach(v => {
             total += v.value
           })
-          if (total < average) {
+          if (total < this.average) {
             els.push(el)
           }
         })
@@ -167,6 +171,13 @@ export default {
     }
   },
   methods: {
+    checkIfUserIsLogged () {
+      if (!localStorage.getItem('userId')) {
+        this.$router.push({
+          name: 'home'
+        })
+      }
+    },
     playMusic (track, id) {
       document.querySelectorAll('audio').forEach(el => {
         el.pause()
@@ -225,6 +236,7 @@ export default {
     }
   },
   mounted () {
+    this.checkIfUserIsLogged()
     this.getUsers()
     this.getSelections()
   }

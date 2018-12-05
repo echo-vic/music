@@ -1,5 +1,6 @@
 <template>
   <q-page v-if="selections.length" padding>
+    <q-pull-to-refresh :handler="refresh">
     <q-modal class="modal" minimized v-model="opened">
     <div class="modal-rate">
       <q-rating
@@ -36,7 +37,11 @@
       <h3 style="text-align: center">Pas de vote en cours</h3>
     </q-list>
     -->
-    <q-list v-if="awaitingVote && awaitingVote.length" striped sparse separator multiline>
+
+    <!--//////////// -->
+    <!-- awaitingVote -->
+    <!--//////////// -->
+    <q-list class="round-borders shadow-5" v-if="awaitingVote && awaitingVote.length" striped sparse separator multiline>
       <q-list-header><span class="list-header">Titres en attente de ton vote :</span></q-list-header>
       <q-item v-if="s.vote.length < users.length" v-for="s in awaitingVote" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
@@ -75,7 +80,10 @@
       </q-item>
     </q-list>
 
-    <q-list v-if="alreadyVote.length" striped sparse separator multiline style="margin-top: 50px">
+    <!--//////////// -->
+    <!-- alreadyVote -->
+    <!--/////////////-->
+    <q-list class="round-borders shadow-5" v-if="alreadyVote.length" striped sparse separator multiline style="margin-top: 50px">
       <q-list-header><span class="list-header">Tu as déjà voté pour les titres suivants :</span></q-list-header>
       <q-item v-if="s.vote.length < users.length" v-for="s in alreadyVote" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
@@ -113,6 +121,7 @@
         </q-item-side>
       </q-item>
     </q-list>
+    </q-pull-to-refresh>
   </q-page>
 </template>
 
@@ -177,6 +186,13 @@ export default {
     }
   },
   methods: {
+    refresh (done) {
+      Api().get('selection')
+        .then(resp => {
+          this.selections = resp.data.selection
+          done()
+        })
+    },
     launchSpotify (id) {
       location.href = id
     },
@@ -207,19 +223,27 @@ export default {
     },
     veto () {
       let userId = localStorage.getItem('userId')
-      Api().put('vote/' + this.trackSelected._id, {
-        'value': 0,
-        'userId': userId
-      })
-        .then(resp => {
-          this.openedVeto = false
-          this.$q.notify({
-            type: 'positive',
-            message: 'Le titre a été retiré',
-            position: 'top'
-          })
-          this.getSelections()
+      if (userId) {
+        Api().put('vote/' + this.trackSelected._id, {
+          'value': 0,
+          'userId': userId
         })
+          .then(resp => {
+            this.openedVeto = false
+            this.$q.notify({
+              type: 'positive',
+              message: 'Le titre a été retiré',
+              position: 'top'
+            })
+            this.getSelections()
+          })
+      } else {
+        this.$q.notify({
+          type: 'negative',
+          message: `Vous n'êtes pas connecté. Veuillez relancer l'application`,
+          position: 'top'
+        })
+      }
     },
     showVetoModal (track) {
       this.openedVeto = true
@@ -257,19 +281,34 @@ export default {
     },
     vote () {
       let userId = localStorage.getItem('userId')
-      Api().put('vote/' + this.trackSelected._id, {
-        'value': this.ratingModel,
-        'userId': userId
-      })
-        .then(resp => {
-          this.opened = false
-          this.$q.notify({
-            type: 'positive',
-            message: 'Le vote a bien été pris en compte',
-            position: 'top'
-          })
-          this.getSelections()
+      if (userId) {
+        Api().put('vote/' + this.trackSelected._id, {
+          'value': this.ratingModel,
+          'userId': userId
         })
+          .then(resp => {
+            this.opened = false
+            this.$q.notify({
+              type: 'positive',
+              message: 'Le vote a bien été pris en compte',
+              position: 'top'
+            })
+            this.getSelections()
+          })
+      } else {
+        this.$q.notify({
+          type: 'negative',
+          message: `Vous n'êtes pas connecté. Veuillez relancer l'application`,
+          position: 'top'
+        })
+      }
+    },
+    checkIfUserIsLogged () {
+      if (!localStorage.getItem('userId')) {
+        this.$router.push({
+          name: 'home'
+        })
+      }
     },
     getSelections () {
       Loading.show()
@@ -285,6 +324,7 @@ export default {
     }
   },
   mounted () {
+    this.checkIfUserIsLogged()
     this.getSelections()
   }
 }

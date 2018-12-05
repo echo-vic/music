@@ -29,6 +29,7 @@
         <q-route-tab v-if="userId" slot="title" icon="list" :to="{name:'list'}" label="Playlist"/>
         <q-route-tab v-if="userId" slot="title" icon="star" :to="{name:'vote'}" label="Vote"/>
         <q-route-tab v-if="userId" slot="title" icon="search" :to="{name:'search'}" label="Recherche"/>
+        <q-route-tab v-if="userId" slot="title" icon="music_note" :to="{name:'repet'}" label="Répète"/>
       </q-tabs>
     </q-layout-footer>
   </q-layout>
@@ -42,8 +43,12 @@ export default {
   name: 'MyLayout',
   data () {
     return {
-      userId: localStorage.getItem('userId'),
       leftDrawerOpen: this.$q.platform.is.desktop
+    }
+  },
+  computed: {
+    userId () {
+      return localStorage.getItem('userId')
     }
   },
   methods: {

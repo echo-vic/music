@@ -11,7 +11,8 @@ const routes = [
       { path: 'vote', name: 'vote', component: () => import('pages/Vote.vue') },
       { path: 'search', name: 'search', component: () => import('pages/Search.vue') },
       { path: 'register', name: 'register', component: () => import('pages/Register.vue') },
-      { path: 'connect', name: 'connect', component: () => import('pages/Connect.vue') }
+      { path: 'connect', name: 'connect', component: () => import('pages/Connect.vue') },
+      { path: 'repet', name: 'repet', component: () => import('pages/Repet.vue') }
     ]
   }
 ]
