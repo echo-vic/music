@@ -108,7 +108,7 @@ export default {
   },
   computed: {
     average () {
-      return parseInt((this.users.length * 5) / 1.1)
+      return parseInt((this.users.length * 5) / 1.2)
     },
     vetoVote () {
       let result = []
