@@ -33,6 +33,26 @@
       />
       </div>
     </q-modal>
+
+    <!-- update vote -->
+    <q-modal class="modal" minimized v-model="updateOpened">
+      <p class="text-center" style="margin-top: 20px">Modifier le vote</p>
+    <div class="modal-rate">
+      <q-rating
+        v-model="ratingModel"
+        size="30px"
+        :max="5"
+      />
+    </div>
+    <div class="modal-rate">
+      <q-btn
+        :disable='!ratingModel'
+        color="primary"
+        @click="updateVote"
+        label="Vote"
+      />
+      </div>
+    </q-modal>
     <!--<q-list v-if="!noSelection.length">
       <h3 style="text-align: center">Pas de vote en cours</h3>
     </q-list>
@@ -83,7 +103,7 @@
     <!--//////////// -->
     <!-- alreadyVote -->
     <!--/////////////-->
-    <q-list class="round-borders shadow-5" v-if="alreadyVote.length" striped sparse separator multiline style="margin-top: 50px">
+    <q-list class="round-borders shadow-5" v-if="alreadyVote.length" striped sparse separator multiline style="margin-top: 30px">
       <q-list-header><span class="list-header">Tu as déjà voté pour les titres suivants :</span></q-list-header>
       <q-item v-if="s.vote.length < users.length" v-for="s in alreadyVote" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
@@ -112,11 +132,11 @@
               <q-btn @click="launchSpotify(s.track.uri)" push rounded color="tertiary" size="sm" label="Spotify" icon="fab fa-spotify" />
             </div>
             <div style="margin-bottom: 17px">
-              <q-btn v-if="showVoteBtn(s)" push @click="showModal(s)" rounded color="secondary" size="sm" label="Vote" icon="ion-md-happy" />
+              <q-btn push @click="showUpdateModal(s)" rounded color="secondary" size="sm" label="Vote" icon="ion-md-redo" />
             </div>
-            <div>
-              <q-btn v-if="showVoteBtn(s)" push @click="showVetoModal(s)" rounded color="negative" size="sm" label="Veto" icon="ion-md-sad" />
-            </div>
+            <!--<div>
+              <q-btn push @click="showUpdateVetoModal(s)" rounded color="negative" size="sm" label="Veto" icon="ion-md-sad" />
+            </div>-->
           </q-item-tile>
         </q-item-side>
       </q-item>
@@ -138,6 +158,7 @@ export default {
       ratingModel: undefined,
       trackSelected: undefined,
       opened: false,
+      updateOpened: false,
       openedVeto: false,
       selections: [],
       users: [],
@@ -255,6 +276,11 @@ export default {
       this.ratingModel = undefined
       this.trackSelected = track
     },
+    showUpdateModal (track) {
+      this.updateOpened = true
+      this.ratingModel = undefined
+      this.trackSelected = track
+    },
     showVoteBtn (track) {
       if (track && track.vote) {
         let userId = localStorage.getItem('userId')
@@ -291,6 +317,30 @@ export default {
             this.$q.notify({
               type: 'positive',
               message: 'Le vote a bien été pris en compte',
+              position: 'top'
+            })
+            this.getSelections()
+          })
+      } else {
+        this.$q.notify({
+          type: 'negative',
+          message: `Vous n'êtes pas connecté. Veuillez relancer l'application`,
+          position: 'top'
+        })
+      }
+    },
+    updateVote () {
+      let userId = localStorage.getItem('userId')
+      let selection = this.selections.find(sel => sel._id === this.trackSelected._id)
+      let vote = selection.vote.find(v => v.userId === userId)
+      vote.value = this.ratingModel
+      if (userId) {
+        Api().put('vote/' + this.trackSelected._id + '/update', selection.vote)
+          .then(resp => {
+            this.updateOpened = false
+            this.$q.notify({
+              type: 'positive',
+              message: 'Le vote a bien été mise à jour',
               position: 'top'
             })
             this.getSelections()
