@@ -150,6 +150,16 @@ app.post('/add_track', (req, res) => {
 	})
 })
 
+var Version = require("../models/version")
+
+app.get('/version', (req, res) => {
+	Version.findOne({}, 'version', function (error, versions) {
+		if (error) { console.error(error); }
+		res.send({
+			version: versions.version
+		})
+	})
+})
 // var User = require("../models/user")
 
 var User = require("../models/user")
