@@ -131,6 +131,16 @@ app.put('/vote/:track_id', (req, res) => {
 	})
 })
 
+app.put('/vote/:track_id/update', (req, res) => {
+	var db = req.db;
+	Selection.findByIdAndUpdate(req.params.track_id, {
+		'vote': req.body
+	}, function (err) {
+		if (err) return next(err)
+    res.send('Vote udpated.')
+	})
+})
+
 app.post('/add_track', (req, res) => {
 	var db = req.db;
 	var date = new Date()
