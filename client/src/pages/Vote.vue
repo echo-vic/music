@@ -61,7 +61,57 @@
     <!--//////////// -->
     <!-- awaitingVote -->
     <!--//////////// -->
-    <q-list class="round-borders shadow-5" v-if="awaitingVote && awaitingVote.length" striped sparse separator multiline>
+    <div v-if="awaitingVote && awaitingVote.length">
+    <div class="q-ml-sm q-mr-sm q-mb-lg">
+      <div class="q-subheading text-grey-10 text-weight-regular">Titres en attente de ton vote :</div>
+      <hr>
+    </div>
+    <q-card v-if="s.vote.length < users.length" v-for="s in awaitingVote" :key="s._id" class="q-ml-sm q-mr-sm q-mb-lg">
+      <q-card-title class="q-pa-none">
+          <div style="border-bottom: 1px solid #ccc" class="row items-center bg-grey-1">
+            <div class="col col-3 col-md-6">
+              <img style="max-width: 100%; display: block" :src="s.track.album.images[0].url" alt="">
+            </div>
+            <div class="col" style="line-height: 1.2rem">
+                <div class="text-grey-9 q-title q-ml-sm">{{ s.track.name }}</div>
+                <div class="text-grey-7 q-subheading q-ml-sm q-mt-sm">{{s.track.artists[0].name}}</div>
+            </div>
+          </div>
+        </q-card-title>
+      <q-list class="q-pt-none">
+        <q-item>
+          <q-item-main>
+            <div class="row row items-center q-ma-xs" v-for="user in users" :key="user._id">
+              <div class="col text-grey-9">{{ user.name }}</div>
+              <div class="col col-auto" style="margin: 0 auto"><q-rating slot="subtitle" :value="getVote(s._id, user._id)" readonly :max="5" /></div>
+            </div>
+            <div class="text-grey-6 q-caption q-ml-xs q-mt-sm">Proposé le {{ formatDate(s.creationDate) }} par {{ getUserName(s.userId) }}</div>
+          </q-item-main>
+        </q-item>
+      </q-list>
+      <q-card-separator />
+      <q-card-actions align="around">
+        <div v-if="s.track.preview_url">
+          <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
+          <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" flat color="primary" size="md" icon="ion-md-play" />
+          <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" color="primary" flat size="md" icon="ion-md-pause" />
+        </div>
+        <div>
+          <q-btn @click="launchSpotify(s.track.uri)" flat icon="fab fa-spotify" size="md" color="positive"></q-btn>
+        </div>
+        <div>
+          <q-btn v-if="showVoteBtn(s)" @click="showModal(s)" flat color="yellow" size="md" icon="ion-md-star" />
+        </div>
+        <div>
+          <q-btn v-if="showVoteBtn(s)" @click="showVetoModal(s)" flat color="red" size="md" icon="ion-md-thumbs-down" />
+        </div>
+        <div>
+          <q-btn @click="remove(s)" flat color="negative" size="md" icon="ion-md-trash" />
+        </div>
+      </q-card-actions>
+    </q-card>
+    </div>
+    <!--<q-list class="round-borders shadow-5" v-if="awaitingVote && awaitingVote.length" striped sparse separator multiline>
       <q-list-header><span class="list-header">Titres en attente de ton vote :</span></q-list-header>
       <q-item v-if="s.vote.length < users.length" v-for="s in awaitingVote" :key="s._id">
         <q-item-side :avatar="s.track.album.images[2].url" />
@@ -98,7 +148,7 @@
           </q-item-tile>
         </q-item-side>
       </q-item>
-    </q-list>
+    </q-list>-->
 
     <!--//////////// -->
     <!-- alreadyVote -->
@@ -207,6 +257,22 @@ export default {
     }
   },
   methods: {
+    remove (track) {
+      this.$q.dialog({
+        title: 'Confirm',
+        message: 'Voulez vous supprimer ce titre ?',
+        ok: 'Oui',
+        cancel: 'Non'
+      }).then(() => {
+        Api().delete('track/' + track._id)
+          .then(resp => {
+            this.getSelections()
+            // this.$q.notify('Le titre a été supprimé')
+          })
+      }).catch(() => {
+        // this.$q.notify('Opération annulé')
+      })
+    },
     refresh (done) {
       Api().get('selection')
         .then(resp => {
