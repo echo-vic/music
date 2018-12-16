@@ -1,8 +1,8 @@
 <template>
   <q-page padding>
-    En cours de developpement...<br><br>
-    <q-btn icon="add" label="Nouvelle répète" @click="newRepetModal = true"/>
-    <br><br>
+    <div class="row justify-center">
+    <q-btn icon="add" color="primary"  outline class="q-mb-md" label="Nouvelle répète" @click="newRepetModal = true"/>
+    </div>
     <q-modal v-model="newRepetModal" minimized>
       <div style="padding: 20px 30px">
         <h4 style="margin: 0">Nouvelle Répète</h4>
@@ -20,29 +20,50 @@
       <div style="padding: 20px 30px">
         <h4 style="margin: 0">Nouveau titre</h4>
       <br>
-      <q-select v-if="songList.length"
-      v-model="songSelect"
-      :options="songList"
-    />
-    <br>
-      <q-btn
-        color="primary"
-        @click="addNewSong()"
-        label="Ajouter"
-      />
+      <q-btn-dropdown label="Ajouter" color="primary">
+        <!-- dropdown content -->
+        <q-list link>
+          <q-item v-for="s in songList" :key="s._id">
+            <q-item-side :avatar="s.track.album.images[2].url" />
+            <q-item-main>
+              <q-item-tile label>{{s.track.artists[0].name + ' - ' + s.track.name}}</q-item-tile>
+            </q-item-main>
+            <q-item-side right>
+              <q-btn push rounded color="primary" label="" icon="ion-md-add" size="sm" @click="addNewSong(s)" />
+            </q-item-side>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
       </div>
     </q-modal>
 
-    <q-list highlight>
-      <q-collapsible v-for="repet in repets" :key="repet._id" :label="formatDate(repet.date)">
-          <q-item>
-            <q-btn icon="add" label="Nouveau titre" @click="displayNewSongModal(repet._id)"/>
-          </q-item>
-          <q-item v-for="song in repet.songs" :key="song">
-            {{getSongName(song)}}
-          </q-item>
-      </q-collapsible>
-    </q-list>
+      <q-card v-for="repet in repets" :key="repet._id" inline class="q-ma-sm">
+      <q-card-media>
+        <img :src="repet.songs[0].track.album.images[0].url">
+        <q-card-title slot="overlay">
+          {{formatDate(repet.date)}}
+          <span slot="subtitle">Segré</span>
+        </q-card-title>
+      </q-card-media>
+      <q-list>
+        <q-item v-for="s in repet.songs" :key="s._id">
+          <q-item-side>
+            <img :src="s.track.album.images[2].url">
+          </q-item-side>
+          <q-item-main>
+            <q-item-tile label>{{s.track.name}}</q-item-tile>
+            <q-item-tile sublabel>{{s.track.artists[0].name}}</q-item-tile>
+          </q-item-main>
+          <q-item-side right>
+            <q-btn @click="launchSpotify(s.track.uri)" push rounded color="tertiary" size="sm" label="Spotify" icon="fab fa-spotify" />
+          </q-item-side>
+        </q-item>
+      </q-list>
+      <q-card-separator />
+      <q-card-actions>
+        <q-btn @click="displayNewSongModal(repet._id)" flat>Ajouter un titre</q-btn>
+      </q-card-actions>
+    </q-card>
   </q-page>
 </template>
 
@@ -51,7 +72,7 @@
 import Api from '../services/Api'
 import { Loading } from 'quasar'
 import moment from 'moment'
-import orderBy from 'lodash/orderBy'
+// import orderBy from 'lodash/orderBy'
 
 export default {
   name: 'repet',
@@ -79,6 +100,9 @@ export default {
     }
   },
   methods: {
+    launchSpotify (id) {
+      location.href = id
+    },
     getSongName (songId) {
       if (this.selections) {
         let song = this.selections.find(el => el._id === songId)
@@ -89,11 +113,16 @@ export default {
     },
     getAllVoteOk (songs, nbUsers) {
       this.songList = []
-      console.log('sgons', songs)
-      let average = parseInt((nbUsers * 5) / 1.1)
-      let els = []
+      let average = parseInt((nbUsers * 5) / 1.2)
+      // let els = []
       songs.forEach(el => {
-        if (!el.vote.find(v => v.value === 0)) {
+        let total = el.vote.reduce(function (acc, vote) {
+          return acc + vote.value
+        }, 0)
+        if (total >= average) {
+          this.songList.push(el)
+        }
+        /* if (!el.vote.find(v => v.value === 0)) {
           let total = 0
           el.vote.forEach(v => {
             total += v.value
@@ -102,19 +131,20 @@ export default {
           if (total >= average) {
             els.push(el)
           }
-        }
+        } */
       })
-      let songsOrder = orderBy(els, ['total'], ['desc'])
+      /* let songsOrder = orderBy(els, ['total'], ['desc'])
       songsOrder.forEach(el => {
         this.songList.push({
           label: el.track.name,
           value: el._id
         })
-      })
+      }) */
     },
-    addNewSong () {
+    addNewSong (song) {
+      console.log('new song', song)
       Api().put('new_repet_song/' + this.currentRepeatId, {
-        'songId': this.songSelect
+        'songId': song
       })
         .then(resp => {
           this.getRepets()
