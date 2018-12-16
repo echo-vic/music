@@ -160,6 +160,19 @@ app.post('/add_track', (req, res) => {
 	})
 })
 
+app.delete('/track/:id', (req, res) => {
+	var db = req.db;
+	Selection.remove({
+		_id: req.params.id
+	}, function(err, post){
+		if (err)
+			res.send(err)
+		res.send({
+			success: true
+		})
+	})
+})
+
 var Version = require("../models/version")
 
 app.get('/version', (req, res) => {
