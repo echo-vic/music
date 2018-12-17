@@ -1,3 +1,5 @@
 export default {
-  songsList: undefined
+  loading: false,
+  songsList: undefined,
+  users: undefined
 }

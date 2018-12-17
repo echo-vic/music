@@ -152,7 +152,7 @@
 <script>
 
 import Api from '../services/Api'
-import { Loading } from 'quasar'
+import { mapState } from 'vuex'
 import moment from 'moment'
 import orderBy from 'lodash/orderBy'
 
@@ -164,35 +164,38 @@ export default {
       updateOpened: false,
       trackSelected: undefined,
       selections: [],
-      users: [],
       rating: {
         muse: 1
       }
     }
   },
-  computed: {
+  computed: { ...mapState('main', ['songsList', 'users']),
     average () {
-      return parseInt((this.users.length * 5) / 1.2)
+      if (this.users) {
+        return parseInt((this.users.length * 5) / 1.2)
+      }
     },
     vetoVote () {
-      let result = []
-      this.selections.forEach(selection => {
-        if (selection.vote.find(vote => vote.value === 0)) {
-          result.push(selection)
-        }
-      })
-      return result
+      if (this.songsList) {
+        let result = []
+        this.songsList.forEach(selection => {
+          if (selection.vote.find(vote => vote.value === 0)) {
+            result.push(selection)
+          }
+        })
+        return result
+      }
     },
     awaitingVote () {
-      if (this.selections) {
-        return this.selections.filter(el => {
+      if (this.songsList && this.users) {
+        return this.songsList.filter(el => {
           return el.vote.lenght !== this.users.length
         })
       }
     },
     allVote () {
-      if (this.selections) {
-        return this.selections.filter(el => {
+      if (this.songsList && this.users) {
+        return this.songsList.filter(el => {
           let len = el.vote.length
           return len === this.users.length
         })
@@ -218,7 +221,6 @@ export default {
       }
     },
     allVoteKo () {
-      console.log('')
       if (this.allVote) {
         let els = []
         this.allVote.forEach(el => {
@@ -245,7 +247,7 @@ export default {
     },
     updateVote () {
       let userId = localStorage.getItem('userId')
-      let selection = this.selections.find(sel => sel._id === this.trackSelected._id)
+      let selection = this.songsList.find(sel => sel._id === this.trackSelected._id)
       let vote = selection.vote.find(v => v.userId === userId)
       vote.value = this.ratingModel
       if (userId) {
@@ -307,34 +309,24 @@ export default {
       return moment(date).lang('fr').format('L')
     },
     getUserName (userId) {
-      let userName = this.users.find(user => user._id === userId)
-      if (userName) {
-        return userName.name
+      if (this.users) {
+        let userName = this.users.find(user => user._id === userId)
+        if (userName) {
+          return userName.name
+        }
       }
-    },
-    getUsers () {
-      Api().get('users')
-        .then(resp => {
-          this.users = resp.data.users
-        })
-    },
-    getSelections () {
-      Loading.show()
-      Api().get('selection')
-        .then(resp => {
-          this.selections = resp.data.selection
-          Api().get('users')
-            .then(resp => {
-              this.users = resp.data.users
-              Loading.hide()
-            })
-        })
     }
   },
   mounted () {
     this.checkIfUserIsLogged()
-    this.getUsers()
-    this.getSelections()
+    let silentLoading
+    if (this.songsList && this.songsList.length) {
+      silentLoading = true
+    } else {
+      silentLoading = false
+    }
+    this.$store.dispatch('main/loadSongs', silentLoading)
+    this.$store.dispatch('main/loadUsers')
   }
 }
 </script>
