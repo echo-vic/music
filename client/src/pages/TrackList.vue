@@ -152,7 +152,7 @@
 <script>
 
 import Api from '../services/Api'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import moment from 'moment'
 import orderBy from 'lodash/orderBy'
 
@@ -169,30 +169,9 @@ export default {
       }
     }
   },
-  computed: { ...mapState('main', ['songsList', 'users']),
-    average () {
-      if (this.users) {
-        return parseInt((this.users.length * 5) / 1.2)
-      }
-    },
-    vetoVote () {
-      if (this.songsList) {
-        let result = []
-        this.songsList.forEach(selection => {
-          if (selection.vote.find(vote => vote.value === 0)) {
-            result.push(selection)
-          }
-        })
-        return result
-      }
-    },
-    awaitingVote () {
-      if (this.songsList && this.users) {
-        return this.songsList.filter(el => {
-          return el.vote.lenght !== this.users.length
-        })
-      }
-    },
+  computed: {
+    ...mapState('main', ['songsList', 'users']),
+    ...mapGetters('main', ['average', 'vetoVote', 'awaitingVote']),
     allVote () {
       if (this.songsList && this.users) {
         return this.songsList.filter(el => {
