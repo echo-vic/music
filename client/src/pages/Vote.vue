@@ -1,5 +1,5 @@
 <template>
-  <q-page v-if="selections.length" padding>
+  <q-page v-if="songsList && songsList.length" padding>
     <q-pull-to-refresh :handler="refresh">
     <q-modal class="modal" minimized v-model="opened">
     <div class="modal-rate">
@@ -100,13 +100,13 @@
           <q-btn @click="launchSpotify(s.track.uri)" flat icon="fab fa-spotify" size="md" color="positive"></q-btn>
         </div>
         <div>
-          <q-btn v-if="showVoteBtn(s)" @click="showModal(s)" flat color="yellow" size="md" icon="ion-md-star" />
+          <q-btn v-if="showVoteBtn(s)" label="Votez" @click="showModal(s)" flat color="yellow-10" size="md" icon="how_to_vote" />
         </div>
         <div>
-          <q-btn v-if="showVoteBtn(s)" @click="showVetoModal(s)" flat color="red" size="md" icon="ion-md-thumbs-down" />
+          <q-btn v-if="showVoteBtn(s)" label="Veto" @click="showVetoModal(s)" flat color="red" size="md" icon="ion-md-thumbs-down" />
         </div>
         <div>
-          <q-btn @click="remove(s)" flat color="negative" size="md" icon="ion-md-trash" />
+          <q-btn @click="remove(s)" label="" flat color="negative" size="md" icon="ion-md-trash" />
         </div>
       </q-card-actions>
     </q-card>
@@ -153,51 +153,65 @@
     <!--//////////// -->
     <!-- alreadyVote -->
     <!--/////////////-->
-    <q-list class="round-borders shadow-5" v-if="alreadyVote.length" striped sparse separator multiline style="margin-top: 30px">
-      <q-list-header><span class="list-header">Tu as déjà voté pour les titres suivants :</span></q-list-header>
-      <q-item v-if="s.vote.length < users.length" v-for="s in alreadyVote" :key="s._id">
-        <q-item-side :avatar="s.track.album.images[2].url" />
-        <q-item-main>
-          <q-item-tile label>{{ s.track.name }} <span>{{ s.track.artists[0].name }}</span></q-item-tile>
-            <q-item-tile sublabel lines="4">
-              <table>
-                <tr v-for="user in users" :key="user._id">
-                  <td class="table-user">{{ user.name }}</td>
-                  <td><q-rating size="18px" :value="getVote(s._id, user._id)" readonly :max="5" /></td>
-                </tr>
-              </table>
-            </q-item-tile>
-            <q-item-tile sublabel>
-              <small>Proposé par {{ getUserName(s.userId) }} le {{ formatDate(s.creationDate) }}</small>
-            </q-item-tile>
-        </q-item-main>
-        <q-item-side right>
-          <q-item-tile sublabel lines="2">
-            <div v-if="s.track.preview_url" style="margin-bottom: 17px">
-              <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
-              <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Play" icon="ion-md-play" />
-              <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" push rounded color="primary" size="sm" label="Pause" icon="ion-md-pause" />
+    <div v-if="noSelection.length">
+    <div class="q-ml-sm q-mr-sm q-mb-lg">
+      <div class="q-subheading text-grey-10 text-weight-regular">Tu as déjà voté pour les titres suivants :</div>
+      <hr>
+    </div>
+    <q-card v-if="s.vote.length < users.length" v-for="s in alreadyVote" :key="s._id" class="q-ml-sm q-mr-sm q-mb-lg">
+      <q-card-title class="q-pa-none">
+          <div style="border-bottom: 1px solid #ccc" class="row items-center bg-grey-1">
+            <div class="col col-3 col-md-6">
+              <img style="max-width: 100%; display: block" :src="s.track.album.images[0].url" alt="">
             </div>
-            <div style="margin-bottom: 17px">
-              <q-btn @click="launchSpotify(s.track.uri)" push rounded color="tertiary" size="sm" label="Spotify" icon="fab fa-spotify" />
+            <div class="col" style="line-height: 1.2rem">
+                <div class="text-grey-9 q-title q-ml-sm">{{ s.track.name }}</div>
+                <div class="text-grey-7 q-subheading q-ml-sm q-mt-sm">{{s.track.artists[0].name}}</div>
             </div>
-            <div style="margin-bottom: 17px">
-              <q-btn push @click="showUpdateModal(s)" rounded color="secondary" size="sm" label="Vote" icon="ion-md-redo" />
+          </div>
+        </q-card-title>
+      <q-list class="q-pt-none">
+        <q-item>
+          <q-item-main>
+            <div class="row row items-center q-ma-xs" v-for="user in users" :key="user._id">
+              <div class="col text-grey-9">{{ user.name }}</div>
+              <div class="col col-auto" style="margin: 0 auto"><q-rating slot="subtitle" :value="getVote(s._id, user._id)" readonly :max="5" /></div>
             </div>
-            <!--<div>
-              <q-btn push @click="showUpdateVetoModal(s)" rounded color="negative" size="sm" label="Veto" icon="ion-md-sad" />
-            </div>-->
-          </q-item-tile>
-        </q-item-side>
-      </q-item>
-    </q-list>
+            <div class="text-grey-6 q-caption q-ml-xs q-mt-sm">Proposé le {{ formatDate(s.creationDate) }} par {{ getUserName(s.userId) }}</div>
+          </q-item-main>
+        </q-item>
+      </q-list>
+      <q-card-separator />
+      <q-card-actions align="around">
+        <div v-if="s.track.preview_url">
+          <audio :id="'audio-'+s._id" :src="s.track.preview_url"></audio>
+          <q-btn class="play" :id="'play-'+s._id" @click="playMusic(s.track.preview_url, s._id)" flat color="primary" size="md" icon="ion-md-play" />
+          <q-btn class="pause hide" :id="'pause-'+s._id" @click="pauseMusic(s.track.preview_url, s._id)" color="primary" flat size="md" icon="ion-md-pause" />
+        </div>
+        <div>
+          <q-btn @click="launchSpotify(s.track.uri)" flat icon="fab fa-spotify" size="md" color="positive"></q-btn>
+        </div>
+        <div>
+          <q-btn  label="Votez" @click="showUpdateModal(s)" flat color="yellow-10" size="md" icon="how_to_vote" />
+        </div>
+        <div>
+          <q-btn @click="remove(s)" label="" flat color="negative" size="md" icon="ion-md-trash" />
+        </div>
+      </q-card-actions>
+    </q-card>
+    </div>
+    <div v-else>
+    <div class="q-ml-sm q-mr-sm q-mb-lg">
+      <div class="q-subheading text-grey-10 text-weight-regular">Aucun vote en cours</div>
+    </div>
+    </div>
     </q-pull-to-refresh>
   </q-page>
 </template>
 
 <script>
 import Api from '../services/Api'
-import { Loading } from 'quasar'
+import { mapState } from 'vuex'
 import moment from 'moment'
 import orderBy from 'lodash/orderBy'
 
@@ -210,12 +224,11 @@ export default {
       opened: false,
       updateOpened: false,
       openedVeto: false,
-      selections: [],
-      users: [],
       rating: {}
     }
   },
   computed: {
+    ...mapState('main', ['songsList', 'users']),
     noSelection () {
       let result = []
       this.selectionWithoutVeto.forEach(selection => {
@@ -228,7 +241,7 @@ export default {
     selectionWithoutVeto () {
       // let scenesOrder = orderBy(resp.body.scenes, ['createdAt'], ['asc'])
       let result = []
-      this.selections.forEach(selection => {
+      this.songsList.forEach(selection => {
         if (!selection.vote.find(vote => vote.value === 0)) {
           result.push(selection)
         }
@@ -266,7 +279,7 @@ export default {
       }).then(() => {
         Api().delete('track/' + track._id)
           .then(resp => {
-            this.getSelections()
+            this.$store.dispatch('main/loadSongs', false)
             // this.$q.notify('Le titre a été supprimé')
           })
       }).catch(() => {
@@ -276,7 +289,7 @@ export default {
     refresh (done) {
       Api().get('selection')
         .then(resp => {
-          this.selections = resp.data.selection
+          this.$store.dispatch('main/loadSongs', false)
           done()
         })
     },
@@ -322,7 +335,7 @@ export default {
               message: 'Le titre a été retiré',
               position: 'top'
             })
-            this.getSelections()
+            this.$store.dispatch('main/loadSongs', false)
           })
       } else {
         this.$q.notify({
@@ -367,7 +380,7 @@ export default {
       }
     },
     getVote (trackId, userId) {
-      let track = this.selections.find(el => el._id === trackId)
+      let track = this.songsList.find(el => el._id === trackId)
       let vote = track.vote.find(el => el.userId === userId)
       if (vote) { return vote.value }
     },
@@ -385,7 +398,7 @@ export default {
               message: 'Le vote a bien été pris en compte',
               position: 'top'
             })
-            this.getSelections()
+            this.$store.dispatch('main/loadSongs', false)
           })
       } else {
         this.$q.notify({
@@ -397,7 +410,7 @@ export default {
     },
     updateVote () {
       let userId = localStorage.getItem('userId')
-      let selection = this.selections.find(sel => sel._id === this.trackSelected._id)
+      let selection = this.songsList.find(sel => sel._id === this.trackSelected._id)
       let vote = selection.vote.find(v => v.userId === userId)
       vote.value = this.ratingModel
       if (userId) {
@@ -409,7 +422,7 @@ export default {
               message: 'Le vote a bien été mise à jour',
               position: 'top'
             })
-            this.getSelections()
+            this.$store.dispatch('main/loadSongs', false)
           })
       } else {
         this.$q.notify({
@@ -425,23 +438,19 @@ export default {
           name: 'home'
         })
       }
-    },
-    getSelections () {
-      Loading.show()
-      Api().get('selection')
-        .then(resp => {
-          this.selections = resp.data.selection
-          Api().get('users')
-            .then(resp => {
-              this.users = resp.data.users
-              Loading.hide()
-            })
-        })
     }
   },
   mounted () {
     this.checkIfUserIsLogged()
-    this.getSelections()
+    // this.getSelections()
+    let silentLoading
+    if (this.songsList && this.songsList.length) {
+      silentLoading = true
+    } else {
+      silentLoading = false
+    }
+    this.$store.dispatch('main/loadSongs', silentLoading)
+    this.$store.dispatch('main/loadUsers')
   }
 }
 </script>
