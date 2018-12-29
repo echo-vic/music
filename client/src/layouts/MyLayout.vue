@@ -33,7 +33,7 @@
             leave-active-class="animated fadeOut"
             duration="500"
           >
-            <q-chip v-if="awaitingVote && awaitingVote.length" square floating color="positive" style="right: 25%; top: 3px; border-radius: 50%">{{ awaitingVote.length }}</q-chip>
+            <q-chip v-if="awaitingVote && awaitingVote.length" square floating color="positive" style="right: 25%; top: 3px">{{ awaitingVote.length }}</q-chip>
           </transition>
         </q-route-tab>
         <q-route-tab v-if="userId" slot="title" icon="search" :to="{name:'search'}" label="Proposez"/>
