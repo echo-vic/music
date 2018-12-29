@@ -25,3 +25,14 @@ export async function loadUsers ({commit}) {
       console.error('error', error)
     })
 }
+
+export async function createUser ({commit, dispatch}, {username, email, password}) {
+  commit('CHANGE_LOADING_STATE', true)
+  const response = await UserService.createUser(username, email, password)
+  if (response) {
+    commit('CHANGE_LOADING_STATE', false)
+    return response.data
+  } else {
+    console.error('error')
+  }
+}

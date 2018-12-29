@@ -1,7 +1,7 @@
 <template>
   <q-page padding class="docs-input row justify-center">
       <div style="width: 500px; max-width: 90vw;">
-        <q-input v-model="form.userName" float-label="Nom" />
+        <q-input v-model="form.userName" float-label="Pseudo" />
         <q-input v-model="form.email" type="email" float-label="Email" />
         <q-input v-model="form.password" type="password" float-label="Password" />
         <q-input v-model="form.passwordConf" type="password" float-label="Password confirmation" />
@@ -11,7 +11,6 @@
 </template>
 
 <script>
-import Api from '../services/Api'
 
 export default {
   data () {
@@ -31,15 +30,29 @@ export default {
   },
   methods: {
     create () {
-      Api().post('/user', {
-        'username': this.form.userName,
-        'email': this.form.email,
-        'password': this.form.password,
-        'passwordConf': this.form.passwordConf
-      })
-        .then(resp => {
-          console.log('resp', resp)
+      if (this.form.password === this.form.passwordConf) {
+        this.$store.dispatch('main/createUser', {
+          userName: this.form.userName,
+          email: this.form.email,
+          password: this.form.password
         })
+          .then((resp) => {
+            this.$q.dialog({
+              title: 'Success',
+              message: resp
+            })
+              .then(() => {
+                this.$router.push({
+                  name: 'connect'
+                })
+              })
+              .catch(() => {
+                // Picked "Cancel" or dismissed
+              })
+          })
+      } else {
+        alert('error password confirmation')
+      }
     },
     identify (user) {
       this.tempUser = user
