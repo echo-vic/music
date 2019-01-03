@@ -9,3 +9,11 @@ export function UPDATE_SONG_LIST (state, payload) {
 export function UPDATE_USERS (state, payload) {
   state.users = payload
 }
+
+export function UPDATE_USER (state, payload) {
+  state.user = payload
+}
+
+export function UPDATE_TOKEN (state, payload) {
+  state.token = payload
+}
