@@ -75,7 +75,8 @@ module.exports = function (ctx) {
         'QDatetime',
         'QSelect',
         'QBtnDropdown',
-        'QChip'
+        'QChip',
+        'QJumbotron'
       ],
       directives: [
         'Ripple',
