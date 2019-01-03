@@ -1,4 +1,3 @@
-
 let userid = localStorage.getItem('userId')
 
 const routes = [
@@ -7,6 +6,7 @@ const routes = [
     component: () => import('layouts/MyLayout.vue'),
     children: [
       { path: !userid ? '' : 'home', name: 'home', component: () => import('pages/Home.vue') },
+      { path: 'register-confirmation', name: 'RegisterConfirmation', component: () => import('pages/RegisterConfirmation.vue') },
       { path: !userid ? 'list' : '', name: 'list', component: () => import('pages/TrackList.vue') },
       { path: 'vote', name: 'vote', component: () => import('pages/Vote.vue') },
       { path: 'search', name: 'search', component: () => import('pages/Search.vue') },
