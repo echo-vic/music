@@ -24,7 +24,7 @@
 
     <q-layout-footer>
       <q-tabs inverted color="deep-orange-8" swipeable animated position="top">
-        <q-route-tab v-if="!userId" slot="title" icon="home" :to="{name:'home'}" label="Home" />
+        <q-route-tab slot="title" icon="home" :to="{name:'home'}" label="Home" />
         <q-route-tab v-if="userId" slot="title" icon="list" :to="{name:'list'}" label="Résultat"/>
         <q-route-tab v-if="userId" slot="title" icon="how_to_vote" :to="{name:'vote'}" label="Votez">
           <transition
