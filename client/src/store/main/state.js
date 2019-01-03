@@ -1,5 +1,6 @@
 export default {
   loading: false,
   songsList: undefined,
-  users: undefined
+  user: undefined,
+  token: undefined
 }
