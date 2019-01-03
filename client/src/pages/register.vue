@@ -32,7 +32,7 @@ export default {
     create () {
       if (this.form.password === this.form.passwordConf) {
         this.$store.dispatch('main/createUser', {
-          userName: this.form.userName,
+          username: this.form.userName,
           email: this.form.email,
           password: this.form.password
         })
@@ -46,9 +46,21 @@ export default {
                   name: 'connect'
                 })
               })
-              .catch(() => {
+              .catch((error) => {
+                console.log(error)
                 // Picked "Cancel" or dismissed
               })
+          })
+          .catch(error => {
+            this.$store.dispatch('main/changeLoadingState', false)
+            let er = JSON.stringify(error)
+            let er2 = JSON.parse(er)
+            let messageError = er2.response.data.error.message
+            console.log(error['message'], er2.response.data.error.message)
+            this.$q.dialog({
+              title: 'Error',
+              message: messageError
+            })
           })
       } else {
         alert('error password confirmation')
