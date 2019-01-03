@@ -10,7 +10,7 @@ import { mapState } from 'vuex'
 import { Loading } from 'quasar'
 export default {
   name: 'App',
-  computed: mapState('main', ['loading']),
+  computed: mapState('main', ['loading', 'user']),
   watch: {
     loading: function (val) {
       if (val) {
