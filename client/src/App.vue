@@ -38,7 +38,12 @@ export default {
         })
     }
   },
-  mounted () {
+  created () {
+    if (localStorage.getItem('userId')) {
+      this.$store.dispatch('main/getUser', {
+        userId: localStorage.getItem('userId')
+      })
+    }
     // this.checkVersion()
     // get local storage app version
     // get serveur app version
